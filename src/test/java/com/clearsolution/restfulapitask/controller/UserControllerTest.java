@@ -35,20 +35,25 @@ class UserControllerTest {
     @InjectMocks
     private UserController userController;
 
-    @Test
-    void testCreateUser() throws Exception {
-        User user = new User();
+    private User user;
+
+    @BeforeEach
+    void setUp() {
+        user = new User();
         user.setId(1L);
-        user.setFirstName("First Test");
-        user.setLastName("Last Test");
+        user.setFirstName("Test");
+        user.setLastName("Test");
         user.setEmail("example@org.ua");
         user.setBirthday(LocalDate.of(1990, 5, 11));
+    }
 
+    @Test
+    void testCreateUser() throws Exception {
         doNothing().when(userService).createUser(any(User.class));
 
         mockMvc.perform(post("/v1/api/users/create")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"firstName\": \"First Test\", \"lastName\": \"Last Test\", \"email\": \"example@org.ua\", \"birthday\": \"1990-05-11\"}"))
+                        .content("{\"firstName\": \"Test\", \"lastName\": \"Test\", \"email\": \"example@org.ua\", \"birthday\": \"1990-05-11\"}"))
                 .andExpect(status().isCreated());
 
         verify(userService, times(1)).createUser(any(User.class));
@@ -56,48 +61,35 @@ class UserControllerTest {
 
     @Test
     void testUpdateUser() throws Exception {
-        User updatedUser = new User();
-        updatedUser.setId(1L);
-        updatedUser.setFirstName("New Test");
-        updatedUser.setLastName("New Test");
-        updatedUser.setEmail("example1@org.ua");
-        updatedUser.setBirthday(LocalDate.of(1991, 5, 11));
-
-        when(userService.updateUser(any(Long.class), any(User.class))).thenReturn(updatedUser);
+        when(userService.updateUser(any(Long.class), any(User.class))).thenReturn(user);
 
         mockMvc.perform(put("/v1/api/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"firstName\": \"New Test\", \"lastName\": \"New Test\", \"email\": \"example1@org.ua\", \"birthday\": \"1991-05-11\"}"))
+                        .content("{\"firstName\": \"Test\", \"lastName\": \"Test\", \"email\": \"example@org.ua\", \"birthday\": \"1990-05-11\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.firstName").value("New Test"))
-                .andExpect(jsonPath("$.data.lastName").value("New Test"))
-                .andExpect(jsonPath("$.data.email").value("example1@org.ua"))
-                .andExpect(jsonPath("$.data.birthday").value("1991-05-11"));
+                .andExpect(jsonPath("$.data.firstName").value("Test"))
+                .andExpect(jsonPath("$.data.lastName").value("Test"))
+                .andExpect(jsonPath("$.data.email").value("example@org.ua"))
+                .andExpect(jsonPath("$.data.birthday").value("1990-05-11"));
 
         verify(userService, times(1)).updateUser(eq(1L), any(User.class));
-
     }
 
     @Test
     void testUpdateFields() throws Exception {
-        User updatedUser = new User();
-        updatedUser.setId(1L);
-        updatedUser.setFirstName("New One Test");
-
-        when(userService.updateUsersFields(any(Long.class), any(User.class))).thenReturn(updatedUser);
+        when(userService.updateUsersFields(any(Long.class), any(User.class))).thenReturn(user);
 
         mockMvc.perform(patch("/v1/api/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content("{\"firstName\": \"New One Test\"}"))
+                        .content("{\"firstName\": \"Test\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.firstName").value("New One Test"));
+                .andExpect(jsonPath("$.data.firstName").value("Test"));
 
         verify(userService, times(1)).updateUsersFields(eq(1L), any(User.class));
     }
 
     @Test
     void testDeleteUser() throws Exception {
-
         doNothing().when(userService).deleteUser(any(Long.class));
 
         mockMvc.perform(delete("/v1/api/users/1"))
@@ -106,23 +98,16 @@ class UserControllerTest {
 
     @Test
     void testSearchUserByBirthdayRange() throws Exception {
-        User user = new User();
-        user.setId(1L);
-        user.setFirstName("Search Test");
-        user.setLastName("Search Test");
-        user.setEmail("example2@org.ua");
-        user.setBirthday(LocalDate.of(1992, 5, 11));
-
         when(userService.findUsersByBirthdayRange(any(LocalDate.class), any(LocalDate.class))).thenReturn(Collections.singletonList(user));
 
         mockMvc.perform(get("/v1/api/users/search")
                         .param("from", LocalDate.now().minusDays(1).toString())
                         .param("to", LocalDate.now().plusDays(1).toString()))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].firstName").value("Search Test"))
-                .andExpect(jsonPath("$.data[0].lastName").value("Search Test"))
-                .andExpect(jsonPath("$.data[0].email").value("example2@org.ua"))
-                .andExpect(jsonPath("$.data[0].birthday").value("1992-05-11"));
+                .andExpect(jsonPath("$.data[0].firstName").value("Test"))
+                .andExpect(jsonPath("$.data[0].lastName").value("Test"))
+                .andExpect(jsonPath("$.data[0].email").value("example@org.ua"))
+                .andExpect(jsonPath("$.data[0].birthday").value("1990-05-11"));
 
         verify(userService, times(1)).findUsersByBirthdayRange(any(LocalDate.class), any(LocalDate.class));
     }
